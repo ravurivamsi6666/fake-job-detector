@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Ad Checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #EEF1F4;
+  --sheet: #FFFFFF;
+  --ink: #17212B;
+  --muted: #5B6875;
+  --line: #CDD5DD;
+  --action: #1E4E79;
+  --action-hover: #163B5C;
+  --action-ink: #FFFFFF;
+  --flag-bg: #FFD3CA;
+  --flag-ink: #8B1E12;
+  --scam: #B3261E;
+  --trust-bg: #CDEBD7;
+  --trust-ink: #1D5C36;
+  --genuine: #1F7A45;
+  --review: #8A5A00;
+  --serif: "Source Serif 4", Georgia, serif;
+  --sans: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151B22;
+    --sheet: #1E262F;
+    --ink: #E6EBF0;
+    --muted: #9AA7B4;
+    --line: #34404C;
+    --action: #5B9BD5;
+    --action-hover: #7FB2E0;
+    --action-ink: #0F1A24;
+    --flag-bg: #6B2A22;
+    --flag-ink: #FFC9BE;
+    --scam: #FF8A7A;
+    --trust-bg: #234A33;
+    --trust-ink: #B9E6C8;
+    --genuine: #7BD3A0;
+    --review: #F2C14E;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.page {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 4rem;
+}
+
+.intro {
+  max-width: 40rem;
+  margin-bottom: 2.5rem;
+}
+
+h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.75rem;
+}
+
+.intro p {
+  color: var(--muted);
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+.workspace {
+  display: grid;
+  gap: 2.5rem;
+}
+
+@media (min-width: 900px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    align-items: start;
+  }
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin: 0 0 0.375rem;
+}
+
+.optional {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+input, textarea {
+  width: 100%;
+  font: inherit;
+  color: var(--ink);
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.75rem 0.875rem;
+}
+
+input { margin-bottom: 1.25rem; }
+
+textarea {
+  min-height: 16rem;
+  resize: vertical;
+  font-family: var(--serif);
+  line-height: 1.6;
+}
+
+input:focus-visible, textarea:focus-visible, button:focus-visible {
+  outline: 3px solid var(--action);
+  outline-offset: 2px;
+}
+
+.count {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin: 0.375rem 0 1.25rem;
+}
+
+.check {
+  width: 100%;
+  font: inherit;
+  font-weight: 600;
+  font-size: 1.0625rem;
+  color: var(--action-ink);
+  background: var(--action);
+  border: 0;
+  border-radius: 6px;
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+}
+
+.check:hover { background: var(--action-hover); }
+.check:disabled { opacity: 0.6; cursor: wait; }
+
+.examples {
+  color: var(--muted);
+  font-size: 0.9375rem;
+  margin: 1rem 0 0;
+}
+
+.link {
+  font: inherit;
+  color: var(--action);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.error {
+  color: var(--scam);
+  font-weight: 600;
+  margin: 1rem 0 0;
+}
+
+.sheet {
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 2rem;
+}
+
+.empty {
+  color: var(--muted);
+  font-family: var(--serif);
+  font-size: 1.125rem;
+  margin: 0;
+}
+
+.verdict {
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+}
+
+.verdict.scam { color: var(--scam); }
+.verdict.genuine { color: var(--genuine); }
+.verdict.review { color: var(--review); }
+
+.summary {
+  color: var(--muted);
+  margin: 0 0 1rem;
+}
+
+.meter {
+  position: relative;
+  height: 0.5rem;
+  background: var(--line);
+  border-radius: 999px;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.meter-fill.scam { background: var(--scam); }
+.meter-fill.genuine { background: var(--genuine); }
+.meter-fill.review { background: var(--review); }
+
+.meter-line {
+  position: absolute;
+  top: -0.375rem;
+  width: 2px;
+  height: 1.25rem;
+  background: var(--ink);
+}
+
+.scale {
+  display: flex;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  margin: 0.5rem 0 2rem;
+}
+
+.scale span:nth-child(2) { text-align: center; }
+.scale span:nth-child(3) { text-align: right; }
+
+h2 {
+  font-size: 1.125rem;
+  margin: 0 0 0.25rem;
+}
+
+.legend {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+}
+
+.marked {
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 28rem;
+  overflow-y: auto;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 1rem 0;
+  margin-bottom: 1.75rem;
+}
+
+mark {
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 0.15em;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  animation: sweep 0.5s ease-out both;
+}
+
+mark.flag { background-image: linear-gradient(var(--flag-bg), var(--flag-bg)); }
+mark.trust { background-image: linear-gradient(var(--trust-bg), var(--trust-bg)); }
+
+@keyframes sweep {
+  from { background-size: 0% 100%; }
+  to { background-size: 100% 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  mark { animation: none; }
+}
+
+.reasons {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 560px) {
+  .reasons { grid-template-columns: 1fr 1fr; }
+}
+
+h3 {
+  font-size: 0.9375rem;
+  margin: 0 0 0.5rem;
+}
+
+.words {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.words li {
+  font-size: 0.875rem;
+  border-radius: 3px;
+  padding: 0.125rem 0.5rem;
+}
+
+.words.flag li { background: var(--flag-bg); color: var(--flag-ink); }
+.words.trust li { background: var(--trust-bg); color: var(--trust-ink); }
+
+.words li.none {
+  background: none;
+  color: var(--muted);
+  padding: 0;
+}
+
+.note {
+  color: var(--muted);
+  font-size: 0.875rem;
+  max-width: 40rem;
+  margin: 1.5rem 0 0;
+}
+</style>
+</head>
+<body>
+<main class="page">
+  <header class="intro">
+    <h1>Is this job ad real?</h1>
+    <p>Paste a job posting. The checker looks for patterns common in scam ads and marks the words that influenced its decision.</p>
+  </header>
+
+  <div class="workspace">
+    <form id="check-form" novalidate>
+      <label for="title">Job title <span class="optional">(optional)</span></label>
+      <input id="title" maxlength="300" autocomplete="off" placeholder="e.g. Data Entry Executive">
+
+      <label for="description">Job ad</label>
+      <textarea id="description" maxlength="20000" placeholder="Paste the full ad here: description, requirements, company details and benefits."></textarea>
+      <p id="count" class="count">0 characters. Paste at least 20.</p>
+
+      <button id="submit" class="check" type="submit">Check this ad</button>
+
+      <p class="examples">
+        No ad to hand? Try a
+        <button class="link" type="button" data-example="scam">suspicious example</button>
+        or a
+        <button class="link" type="button" data-example="genuine">genuine one</button>.
+      </p>
+      <p id="error" class="error" role="alert" hidden></p>
+    </form>
+
+    <section aria-live="polite">
+      <div class="sheet">
+        <p id="empty" class="empty">Your result will appear here, with the words that mattered marked in the ad.</p>
+
+        <div id="result" hidden>
+          <p id="verdict" class="verdict"></p>
+          <p id="summary" class="summary"></p>
+          <div class="meter" aria-hidden="true">
+            <div id="meter-fill" class="meter-fill"></div>
+            <div id="meter-low" class="meter-line"></div>
+            <div id="meter-high" class="meter-line"></div>
+          </div>
+          <div class="scale" aria-hidden="true">
+            <span id="scale-genuine">Looks genuine</span>
+            <span id="scale-review">Closer look</span>
+            <span id="scale-scam">Likely scam</span>
+          </div>
+
+          <h2>The ad, marked up</h2>
+          <p class="legend"><mark class="flag">Red</mark> raised concern. <mark class="trust">Green</mark> looked genuine.</p>
+          <div id="marked" class="marked"></div>
+
+          <div class="reasons">
+            <div>
+              <h3>Raised concern</h3>
+              <ul id="flags" class="words flag"></ul>
+            </div>
+            <div>
+              <h3>Looked genuine</h3>
+              <ul id="trust" class="words trust"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="note">The checker learned from about 15,000 past job ads and caught 87% of scams in testing, but it can be wrong. Whatever it says, never pay a fee or share bank details to get a job.</p>
+    </section>
+  </div>
+</main>
+
+<script>
+const EXAMPLES = {
+  scam: {
+    title: "Data Entry Clerk - Work From Home",
+    description: "Earn $500 per week from home! No experience needed. Simple data entry work, flexible hours. Apply using the link www.quick-jobs-now.com and send your bank details to start immediately."
+  },
+  genuine: {
+    title: "Backend Engineer",
+    description: "Our growing startup team is looking for a backend engineer to build scalable APIs in Python. You will work closely with our product and data teams to ship new features for our clients.\n\nWe are a fast-growing software company helping retailers with digital tools. You'll join a friendly team with a strong culture of learning."
+  }
+};
+
+const TOKEN_PATTERNS = {
+  moneytoken: "[$₹£€]\\s?\\d[\\d,]*",
+  urltoken: "(?:https?:\\/\\/|www\\.)\\S+",
+  emailtoken: "\\S+@\\S+\\.\\S+",
+  phonetoken: "\\+?\\d[\\d\\s-]{7,}\\d"
+};
+
+const TOKEN_LABELS = {
+  moneytoken: "money amount",
+  urltoken: "web address",
+  emailtoken: "email address",
+  phonetoken: "phone number"
+};
+
+const form = document.getElementById("check-form");
+const titleInput = document.getElementById("title");
+const descriptionInput = document.getElementById("description");
+const count = document.getElementById("count");
+const submitButton = document.getElementById("submit");
+const errorBox = document.getElementById("error");
+
+descriptionInput.addEventListener("input", updateCount);
+
+document.querySelectorAll("[data-example]").forEach((button) => {
+  button.addEventListener("click", () => {
+    const example = EXAMPLES[button.dataset.example];
+    titleInput.value = example.title;
+    descriptionInput.value = example.description;
+    updateCount();
+    form.requestSubmit();
+  });
+});
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  hideError();
+
+  const title = titleInput.value.trim();
+  const description = descriptionInput.value.trim();
+
+  if (description.length < 20) {
+    showError("Paste at least 20 characters of the job ad, then check again.");
+    descriptionInput.focus();
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const response = await fetch("/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, description })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(readError(data));
+    }
+    showResult(data, title ? title + "\n\n" + description : description);
+  } catch (error) {
+    const message = error instanceof TypeError
+      ? "Can't reach the checker. Make sure the server is running, then try again."
+      : error.message;
+    showError(message);
+  } finally {
+    setLoading(false);
+  }
+});
+
+function updateCount() {
+  const length = descriptionInput.value.trim().length;
+  count.textContent = length < 20
+    ? `${length} characters. Paste at least 20.`
+    : `${length} characters.`;
+}
+
+function setLoading(isLoading) {
+  submitButton.disabled = isLoading;
+  submitButton.textContent = isLoading ? "Checking…" : "Check this ad";
+}
+
+function showError(message) {
+  errorBox.textContent = message;
+  errorBox.hidden = false;
+}
+
+function hideError() {
+  errorBox.hidden = true;
+}
+
+function readError(data) {
+  if (Array.isArray(data.detail) && data.detail.length) {
+    return data.detail[0].msg;
+  }
+  if (typeof data.detail === "string") {
+    return data.detail;
+  }
+  return "The checker couldn't process this ad. Try again.";
+}
+
+const VERDICTS = {
+  likely_scam: {
+    kind: "scam",
+    title: "Likely a scam",
+    note: (percent, low, high) =>
+      `Scam likelihood ${percent}%. Ads above ${high}% are marked as likely scams. Don't apply, pay or share personal details.`
+  },
+  needs_review: {
+    kind: "review",
+    title: "Needs a closer look",
+    note: (percent, low, high) =>
+      `Scam likelihood ${percent}%. Some signs worry the checker, but it isn't sure. Look up the company's website and reviews before you apply.`
+  },
+  looks_genuine: {
+    kind: "genuine",
+    title: "Looks genuine",
+    note: (percent, low, high) =>
+      `Scam likelihood ${percent}%. Ads below ${low}% are marked as genuine.`
+  }
+};
+
+function showResult(result, text) {
+  const percent = Math.round(result.fake_probability * 100);
+  const low = Math.round(result.review_range[0] * 100);
+  const high = Math.round(result.review_range[1] * 100);
+  const verdictInfo = VERDICTS[result.verdict];
+  const kind = verdictInfo.kind;
+
+  const verdict = document.getElementById("verdict");
+  verdict.textContent = verdictInfo.title;
+  verdict.className = "verdict " + kind;
+
+  document.getElementById("summary").textContent = verdictInfo.note(percent, low, high);
+
+  const fill = document.getElementById("meter-fill");
+  fill.style.width = percent + "%";
+  fill.className = "meter-fill " + kind;
+  document.getElementById("meter-low").style.left = low + "%";
+  document.getElementById("meter-high").style.left = high + "%";
+  document.getElementById("scale-genuine").style.width = low + "%";
+  document.getElementById("scale-review").style.width = (high - low) + "%";
+  document.getElementById("scale-scam").style.width = (100 - high) + "%";
+
+  const marks = [
+    ...findMarks(text, result.red_flags, "flag"),
+    ...findMarks(text, result.trust_signals, "trust")
+  ];
+  document.getElementById("marked").innerHTML = markUp(text, marks);
+
+  fillList("flags", result.red_flags, "Nothing stood out as suspicious.");
+  fillList("trust", result.trust_signals, "Nothing stood out as reassuring.");
+
+  document.getElementById("empty").hidden = true;
+  document.getElementById("result").hidden = false;
+}
+
+function fillList(id, reasons, emptyText) {
+  const list = document.getElementById(id);
+  list.innerHTML = "";
+  if (!reasons.length) {
+    const item = document.createElement("li");
+    item.className = "none";
+    item.textContent = emptyText;
+    list.appendChild(item);
+    return;
+  }
+  reasons.forEach((reason) => {
+    const item = document.createElement("li");
+    item.textContent = readable(reason.word);
+    list.appendChild(item);
+  });
+}
+
+function readable(term) {
+  return term.split(" ").map((part) => TOKEN_LABELS[part] || part).join(" ");
+}
+
+function termToPattern(term) {
+  return term
+    .split(" ")
+    .map((part) => TOKEN_PATTERNS[part] || `\\b${part}\\b`)
+    .join("\\W+(?:\\w+\\W+)?");
+}
+
+function findMarks(text, reasons, kind) {
+  const marks = [];
+  reasons.forEach((reason) => {
+    const regex = new RegExp(termToPattern(reason.word), "gi");
+    for (const match of text.matchAll(regex)) {
+      marks.push({ start: match.index, end: match.index + match[0].length, kind });
+    }
+  });
+  return marks;
+}
+
+function markUp(text, marks) {
+  marks.sort((a, b) => a.start - b.start || (b.end - b.start) - (a.end - a.start));
+  let html = "";
+  let cursor = 0;
+  marks.forEach((mark) => {
+    if (mark.start < cursor) return;
+    html += escapeHtml(text.slice(cursor, mark.start));
+    html += `<mark class="${mark.kind}">${escapeHtml(text.slice(mark.start, mark.end))}</mark>`;
+    cursor = mark.end;
+  });
+  return html + escapeHtml(text.slice(cursor));
+}
+
+function escapeHtml(value) {
+  return value.replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[char]);
+}
+</script>
+</body>
+</html>
